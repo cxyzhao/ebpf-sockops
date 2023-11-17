@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <linux/types.h>
 #include <linux/swab.h>
+#include <bpf/bpf_helpers.h>
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 # define __bpf_ntohs(x)                 __builtin_bswap16(x)
@@ -99,13 +100,13 @@ static const __u32 loopback_ip = 127 + (1 << 24);
 #define SERVER_PORT 10000
 #endif
 
-struct bpf_map_def {
-	__u32 type;
-	__u32 key_size;
-	__u32 value_size;
-	__u32 max_entries;
-	__u32 map_flags;
-};
+// struct bpf_map_def {
+// 	__u32 type;
+// 	__u32 key_size;
+// 	__u32 value_size;
+// 	__u32 max_entries;
+// 	__u32 map_flags;
+// };
 
 union v6addr {
         struct {
@@ -143,13 +144,21 @@ struct sock_key {
 	__u32 dport;
 } __attribute__((packed));
 
-struct bpf_map_def __section_maps sock_ops_map = {
-	.type           = BPF_MAP_TYPE_SOCKHASH,
-	.key_size       = sizeof(struct sock_key),
-	.value_size     = sizeof(int),
-	.max_entries    = 65535,
-	.map_flags      = 0,
-};
+// struct bpf_map_def __section_maps sock_ops_map = {
+// 	.type           = BPF_MAP_TYPE_SOCKHASH,
+// 	.key_size       = sizeof(struct sock_key),
+// 	.value_size     = sizeof(int),
+// 	.max_entries    = 65535,
+// 	.map_flags      = 0,
+// };
+
+struct {
+    __uint(type, BPF_MAP_TYPE_SOCKHASH);
+    __type(key, struct sock_key);
+    __type(value, int);
+    __uint(max_entries, 65535);
+    __uint(map_flags, 0);
+} sock_ops_map SEC(".maps");
 
 static inline void sk_extract4_key(struct bpf_sock_ops *ops,
 				   struct sock_key *key)
